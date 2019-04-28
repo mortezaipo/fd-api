@@ -2,7 +2,7 @@
 
 License: GPL-3.0
 """
-from typing import Union
+from typing import Union, Any
 from uuid import uuid4
 import urllib.request
 
@@ -23,7 +23,7 @@ def parse_request(body: str) -> Union[dict, bool]:
     try:
         parsed_body = json_decode(body)
     except Exception:
-        return False
+        return parsed_body
 
     if "image_url" not in parsed_body:
         return False
@@ -41,10 +41,10 @@ class FaceDetectionHandler(tornado.web.RequestHandler):
         super().__init__(*args, **kwargs)
         self.__url_obj = urllib.request.URLopener()
 
-    def _render(self, is_error: bool, data: str) -> str:
+    def _render(self, is_error: bool, data: Any) -> None:
         """Prepare rendered response."""
         response = {"is_error": is_error, "data": data}
-        return self.write(json_encode(response))
+        self.write(json_encode(response))
 
     def _download_file(self, http_path: str) -> str:
         """Download file and put it in local temp storage."""
@@ -52,11 +52,11 @@ class FaceDetectionHandler(tornado.web.RequestHandler):
         try:
             self.__url_obj.retrieve(http_path, temp_file_path)
         except Exception as e:
-            log.error("downloading and storing the file failed, %s", e)
+            tornado.log.app_log.error("downloading and storing the file failed, %s", e)
             return ""
         return temp_file_path
 
-    def post(self):
+    def post(self) -> None:
         """Post request handler."""
         # validate input
         request = parse_request(self.request.body)
@@ -82,6 +82,7 @@ def main():
     return tornado.web.Application([
         (r"/v1/face-detection/", FaceDetectionHandler)
     ])
+
 
 if __name__ == "__main__":
     app = main()
