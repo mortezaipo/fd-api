@@ -1,7 +1,4 @@
-"""Face-Detection API.
-
-License: GPL-3.0
-"""
+"""Face-Detection API."""
 from typing import Union, Any
 from uuid import uuid4
 import urllib.request
